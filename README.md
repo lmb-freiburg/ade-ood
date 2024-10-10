@@ -1,14 +1,52 @@
-# ADE-OoD
-Official repository for the ADE-OoD benchmark. The repo is under construction, but the benchmark data is ready to use and available for download at ade-ood.github.io.
+# ADE-OoD: A Benchmark for Out-of-Distribution Detection Beyond Road Scenes
+Official repository for the ADE-OoD benchmark, containing the evaluation code and annotation tool (coming soon). 
 
-## Coming soon
-- Evaluation code
-- Annotation tool
-
-## Download
+## :inbox_tray: Download
 The data is available for download at the [project page](ade-ood.github.io).
 
-## Citations
+## :chart_with_upwards_trend: Evaluation
+This repo contains some utilities for evaluating your method on the ADE-OoD benchmark, without the need for other repositories.
+
+These tools are also showcased in `example.py`.
+
+#### Loading OoD scores from disk
+If you already computed the scores for your method, you can use `evaluation.ade_ood_eval_with_scores_from_disk`:
+```python
+ap, fpr95 = ade_ood_eval_with_scores_from_disk(
+    'SCORES_PATH',
+    ade_ood_path='ADE_OOD_PATH', 
+    scores_suffix='_my_method.npy'
+    )
+```
+This requires that the scores are saved in 2D numpy arrays, and named like the original ADE-OoD images (plus an optional suffix).
+
+#### Using a callback
+If you want to pass your method as a callback, you can use `evaluation.ade_ood_eval_with_callback`:
+```python
+ap, fpr95 = ade_ood_eval_with_callback(
+    your_method,
+    data_preprocess_callback=your_preprocessing, 
+    ade_ood_path='ADE_OOD_PATH'
+    )
+```
+This requires your method to receive the input as its only positional, and return the scores as 2D torch/numpy arrays.
+
+#### Explicit evaluation
+For maximum flexibility you can use the `evaluation.ADEOoDDataset` and `evaluation.StreamingEval` classes directly, like this:
+```python
+ade_ood = ADEOoDDataset(os.path.expandvars('ADE_OOD_PATH'))
+evaluator = StreamingEval(ade_ood.ood_idx)
+for img, gt, img_name in ade_ood:
+    img = your_preprocessing(img)
+    score_map = your_method(img)
+    evaluator.add(score_map, gt)
+ap, fpr95 = evaluator.get_ap(), evaluator.get_fpr95()
+```
+
+## :white_check_mark: TODO
+- Publish annotation tool
+
+## :mortar_board: Citations
 If you use this benchmark in your research, please cite the following papers:
 
 ```
